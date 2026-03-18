@@ -42,6 +42,7 @@ export class MeetingsService {
         tasks: {
           include: {
             subtasks: true,
+            assignedTo: { select: { name: true } },
           },
         },
       },
