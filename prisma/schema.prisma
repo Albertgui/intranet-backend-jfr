@@ -37,6 +37,7 @@ model User {
   
   tasksCreated  Task[]    @relation("CreatedTasks")
   tasksAssigned Task[]    @relation("AssignedTasks")
+  attendances   Attendance[] @relation("UserAttendances")
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -50,6 +51,7 @@ model Meeting {
   location    String?
   
   tasks       Task[]
+  attendances Attendance[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -88,4 +90,20 @@ model SubTask {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Attendance {
+  id          String   @id @default(uuid())
+  meetingId   String
+  meeting     Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  
+  userId      String?
+  user        User?    @relation("UserAttendances", fields: [userId], references: [id], onDelete: Cascade)
+  
+  customName  String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([meetingId, userId])
 }

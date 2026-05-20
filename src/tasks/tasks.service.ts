@@ -31,6 +31,9 @@ export class TasksService {
         meetingId: createTaskDto.meetingId,
         createdById: userId,
         assignedToId: createTaskDto.assignedTo,
+        dueDate: createTaskDto.dueDate
+          ? new Date(createTaskDto.dueDate)
+          : undefined,
       },
     });
   }
@@ -74,10 +77,13 @@ export class TasksService {
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {
     try {
-      const { assignedTo, ...restData } = updateTaskDto;
+      const { assignedTo, dueDate, ...restData } = updateTaskDto;
       const dataToUpdate = {
         ...restData,
         ...(assignedTo !== undefined && { assignedToId: assignedTo }),
+        ...(dueDate !== undefined && {
+          dueDate: dueDate ? new Date(dueDate) : null,
+        }),
       };
 
       return await this.prisma.task.update({

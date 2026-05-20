@@ -52,4 +52,22 @@ export class MeetingsController {
   remove(@Param('id') id: string) {
     return this.meetingsService.remove(id);
   }
+
+  @Post(':id/attendance')
+  @Roles('ADMIN', 'VOCERO')
+  addAttendee(
+    @Param('id') id: string,
+    @Body() body: { userId?: string; customName?: string },
+  ) {
+    return this.meetingsService.addAttendee(id, body);
+  }
+
+  @Delete(':id/attendance/:attendanceId')
+  @Roles('ADMIN', 'VOCERO')
+  removeAttendee(
+    @Param('id') id: string,
+    @Param('attendanceId') attendanceId: string,
+  ) {
+    return this.meetingsService.removeAttendee(id, attendanceId);
+  }
 }

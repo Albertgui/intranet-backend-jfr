@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
@@ -45,6 +50,11 @@ export class MeetingsService {
             assignedTo: { select: { name: true } },
           },
         },
+        attendances: {
+          include: {
+            user: { select: { id: true, name: true, role: true, email: true } },
+          },
+        },
       },
     });
 
@@ -76,6 +86,47 @@ export class MeetingsService {
     } catch {
       throw new NotFoundException(
         `No se pudo eliminar. La reunión con ID ${id} no existe.`,
+      );
+    }
+  }
+
+  async addAttendee(
+    meetingId: string,
+    data: { userId?: string; customName?: string },
+  ) {
+    if (!data.userId && !data.customName) {
+      throw new BadRequestException(
+        'Debe proporcionar un usuario registrado o un nombre personalizado.',
+      );
+    }
+
+    try {
+      return await this.prisma.attendance.create({
+        data: {
+          meetingId,
+          userId: data.userId || null,
+          customName: data.customName || null,
+        },
+        include: {
+          user: { select: { id: true, name: true, role: true, email: true } },
+        },
+      });
+    } catch (error) {
+      this.logger.error('Error al agregar asistente:', error);
+      throw new BadRequestException(
+        'El asistente ya está registrado o los datos no son válidos.',
+      );
+    }
+  }
+
+  async removeAttendee(meetingId: string, attendanceId: string) {
+    try {
+      return await this.prisma.attendance.delete({
+        where: { id: attendanceId, meetingId },
+      });
+    } catch {
+      throw new NotFoundException(
+        `No se pudo eliminar la asistencia. No existe el registro con ID ${attendanceId} en esta reunión.`,
       );
     }
   }
